@@ -1,0 +1,25 @@
+# requirements.txt
+# Core scientific computing
+numpy>=1.26.0
+scipy>=1.14.0
+
+# Deep Learning (VAE)
+torch>=2.0.0
+torchvision>=0.15.0  # optional but often installed together
+
+# Data handling & visualization
+pandas>=2.2.0
+matplotlib>=3.8.0
+
+# Clustering & dimensionality reduction
+scikit-learn>=1.5.0
+
+# Optional: for better reproducibility
+tqdm>=4.66.0          # progress bars (useful during training)
+
+numpy
+scipy
+matplotlib
+pandas
+torch
+scikit-learn
