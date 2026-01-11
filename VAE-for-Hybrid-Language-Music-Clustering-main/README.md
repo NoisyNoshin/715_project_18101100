@@ -6,33 +6,15 @@ Unsupervised clustering of song lyrics using Variational Autoencoders (VAE) to e
 
 Current status (Jan 2026): Basic VAE + TF-IDF features + clustering + evaluation metrics implemented (easy task level).
 
-VAE-for-Hybrid-Language-Music-Clustering/
-│
-├── data/                         # Data directory (NOT fully tracked)
-│   └── lyrics/                   # Raw lyrics text files
-│       ├── adele.txt
-│       ├── amy-winehouse.txt
-│       └── .gitkeep              # Keeps empty folder in Git
-│
-├── notebooks/
-│   └── exploratory.ipynb         # Main experiment notebook
-│
-├── src/                          # Source code
-│   ├── __init__.py               # Makes src a Python module
-│   ├── dataset.py                # Data loading + TF-IDF
-│   ├── vae.py                    # VAE model & training
-│   ├── clustering.py             # KMeans + PCA
-│   └── evaluation.py             # Clustering metrics
-│
-├── results/                      # Generated outputs
-│   ├── latent_visualization/
-│   │   └── .gitkeep              # Keeps folder tracked
-│   └── clustering_metrics.csv    # Evaluation results
-│
-├── .gitignore                    # Ignore large / generated files
-├── README.md                     # Project overview & instructions
-├── requirements.txt              # Python dependencies
-└── LICENSE                       # (optional but recommended)
+The data/ directory contains all dataset-related files and is not fully tracked by Git. Inside it, the lyrics/ subdirectory stores raw song lyrics in text format (for example, adele.txt, amy-winehouse.txt). A .gitkeep file is included to preserve the directory structure even when the actual data files are excluded from version control.
+
+The notebooks/ directory contains Jupyter notebooks used for experimentation and analysis. The main notebook, exploratory.ipynb, is intended for running experiments, visualizing results, and testing different configurations interactively.
+
+All core implementation files are placed in the src/ directory. This directory is treated as a Python module using an __init__.py file. The file dataset.py handles data loading and TF-IDF feature extraction, while vae.py defines and trains the Variational Autoencoder model. Clustering-related methods, including K-Means and a PCA baseline, are implemented in clustering.py, and all clustering evaluation metrics are centralized in evaluation.py.
+
+The results/ directory stores generated outputs from experiments. It includes a latent_visualization/ subdirectory for saved plots such as latent space visualizations, tracked using a .gitkeep file, and a clustering_metrics.csv file that records quantitative evaluation results.
+
+At the root level, the .gitignore file specifies files and directories that should not be tracked by Git, such as large data files and generated outputs. The README.md file provides an overview of the project along with usage instructions, while requirements.txt lists all Python dependencies required to reproduce the experiments. An optional LICENSE file is included to define usage and distribution rights.
 
 
 ## Requirements
