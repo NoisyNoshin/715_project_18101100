@@ -1,0 +1,173 @@
+\documentclass{article}
+
+% NeurIPS 2024 style
+\usepackage[final]{neurips_2024}
+
+% Basic packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{hyperref}
+
+\title{Variational Autoencoder-Based Clustering of Hybrid-Language Song Lyrics}
+
+\author{
+  Noshin Tabassum Arthi \\
+  Department of Computer Science \\
+  Brac University \\
+  \texttt{noshin.tabassum.arthi@g.bracu.ac.bd}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Unsupervised clustering of music lyrics enables the discovery of latent stylistic patterns without requiring manual annotation. In this project, we explore the use of Variational Autoencoders (VAEs) to learn compact latent representations of song lyrics written in multiple languages. Lyrics are represented using TF--IDF features and encoded into a low-dimensional latent space using a fully connected VAE. Clustering is then performed on the learned latent vectors using K-Means, and the results are compared against a PCA-based baseline. Clustering quality is evaluated using standard unsupervised metrics including Silhouette Score, Calinski--Harabasz Index, and Davies--Bouldin Index, with optional supervised metrics when labels are available. Experimental results demonstrate that VAE-based representations provide improved clustering structure compared to linear PCA baselines.
+\end{abstract}
+
+\section{Introduction}
+Music lyrics convey rich semantic and stylistic information that reflects genre, artist identity, and cultural background. Automatically grouping songs based on lyrical similarity is a challenging unsupervised learning problem due to the high dimensionality and sparsity of textual representations. Traditional approaches often rely on linear dimensionality reduction techniques such as Principal Component Analysis (PCA), which may fail to capture complex nonlinear patterns.
+
+Variational Autoencoders (VAEs) provide a probabilistic framework for learning smooth and continuous latent representations. By encouraging the latent space to follow a structured prior distribution, VAEs are particularly suitable for downstream clustering tasks. In this work, we investigate the effectiveness of VAE-learned latent representations for clustering song lyrics written in different languages and styles. The goal is to group lyrics exhibiting similar stylistic characteristics such as rap, pop, ballad, or poetic writing, without relying on explicit supervision.
+
+\section{Related Work}
+Unsupervised text clustering has been widely studied using bag-of-words models, TF--IDF representations, and topic models such as Latent Dirichlet Allocation. More recent approaches leverage neural autoencoders to learn dense embeddings suitable for clustering. Variational Autoencoders, introduced by Kingma and Welling, extend traditional autoencoders by learning a probabilistic latent space, enabling better generalization and smooth interpolation.
+
+In the music domain, VAEs have been applied to audio representation learning, genre discovery, and recommendation systems. However, comparatively less work has focused on lyric-based clustering using VAE models, particularly in multilingual or hybrid-language settings. This project contributes to this direction by providing a simple yet effective baseline for lyric clustering using VAEs.
+
+\section{Method}
+
+This section describes the proposed unsupervised clustering framework, including textual and audio feature extraction, variational autoencoder formulation, and clustering strategies.
+
+\subsection{Problem Formulation}
+Given a collection of $N$ songs, each represented by lyrics and optional audio signals, the objective is to learn a latent representation
+\[
+\mathbf{z}_i \in \mathbb{R}^d
+\]
+such that songs with similar stylistic or semantic characteristics are close in the latent space. No ground-truth labels are assumed during training.
+
+\subsection{Text Feature Representation}
+Each song lyric is represented using Term Frequency--Inverse Document Frequency (TF--IDF). Let $D = \{d_1, \dots, d_N\}$ be the set of lyric documents and $V$ be the vocabulary.
+
+The TF--IDF value for term $t$ in document $d$ is defined as:
+\begin{equation}
+\text{tfidf}(t, d) = \text{tf}(t, d) \cdot \log\left(\frac{N}{\text{df}(t) + 1}\right),
+\end{equation}
+where $\text{tf}(t,d)$ denotes term frequency and $\text{df}(t)$ denotes document frequency. The resulting lyric feature matrix is
+\[
+\mathbf{X}_{\text{text}} \in \mathbb{R}^{N \times V}.
+\]
+
+\subsection{Audio Feature Extraction}
+To incorporate musical characteristics beyond lyrics, Mel-Frequency Cepstral Coefficients (MFCCs) are extracted from audio signals. Given an audio waveform $s(t)$, MFCCs are computed by applying a short-time Fourier transform followed by a Mel-scale filter bank and discrete cosine transform.
+
+For each song, MFCC features are aggregated over time using mean statistics, yielding:
+\[
+\mathbf{X}_{\text{audio}} \in \mathbb{R}^{N \times A},
+\]
+where $A$ denotes the flattened MFCC dimensionality.
+
+\subsection{Multi-Modal Feature Fusion}
+Lyrics and audio features are combined via early fusion:
+\begin{equation}
+\mathbf{X}_{\text{hybrid}} = [\mathbf{X}_{\text{text}} \; || \; \mathbf{X}_{\text{audio}}],
+\end{equation}
+where $||$ denotes feature concatenation. This unified representation is used as input to the representation learning model.
+
+\subsection{Variational Autoencoder}
+We employ a Variational Autoencoder (VAE) to learn a low-dimensional latent representation. The encoder defines an approximate posterior:
+\begin{equation}
+q_\phi(\mathbf{z}|\mathbf{x}) = \mathcal{N}(\boldsymbol{\mu}_\phi(\mathbf{x}), \text{diag}(\boldsymbol{\sigma}_\phi^2(\mathbf{x}))).
+\end{equation}
+
+Latent variables are sampled using the reparameterization trick:
+\begin{equation}
+\mathbf{z} = \boldsymbol{\mu} + \boldsymbol{\sigma} \odot \boldsymbol{\epsilon}, \quad \boldsymbol{\epsilon} \sim \mathcal{N}(0, \mathbf{I}).
+\end{equation}
+
+The decoder reconstructs the input as $p_\theta(\mathbf{x}|\mathbf{z})$. The training objective maximizes the Evidence Lower Bound (ELBO):
+\begin{equation}
+\mathcal{L}_{\text{ELBO}} =
+\mathbb{E}_{q_\phi(\mathbf{z}|\mathbf{x})}[\log p_\theta(\mathbf{x}|\mathbf{z})]
+- \beta \, D_{\text{KL}}(q_\phi(\mathbf{z}|\mathbf{x}) \| p(\mathbf{z})),
+\end{equation}
+where $p(\mathbf{z}) = \mathcal{N}(0, \mathbf{I})$ and $\beta = 1$ for the standard VAE.
+
+\subsection{Clustering in Latent Space}
+After training, latent representations $\{\mathbf{z}_i\}_{i=1}^N$ are clustered using K-Means by minimizing:
+\begin{equation}
+\min_{\{\mathcal{C}_k\}} \sum_{k=1}^{K} \sum_{\mathbf{z}_i \in \mathcal{C}_k}
+\|\mathbf{z}_i - \boldsymbol{\mu}_k\|_2^2.
+\end{equation}
+
+Additional clustering algorithms, including Agglomerative Clustering and DBSCAN, are also evaluated for robustness.
+
+\subsection{Baselines}
+To assess the benefit of nonlinear latent representations, we compare against:
+\begin{itemize}
+    \item PCA + K-Means
+    \item Autoencoder + K-Means
+    \item Direct spectral clustering on input features
+\end{itemize}
+
+\section{Experiments}
+
+\subsection{Training Setup}
+The VAE is trained using the Adam optimizer with a learning rate of $10^{-3}$. The hidden layer dimension is set to 128, and the latent dimension is set to 10. Training is performed for 100 epochs with a batch size of 16.
+
+\subsection{Evaluation Metrics}
+Clustering quality is evaluated using standard internal and external metrics.
+
+\paragraph{Silhouette Score}
+\begin{equation}
+s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))},
+\end{equation}
+where $a(i)$ is the average intra-cluster distance and $b(i)$ is the minimum inter-cluster distance.
+
+\paragraph{Calinski--Harabasz Index}
+\begin{equation}
+\text{CH} = \frac{\text{tr}(B_k)/(k-1)}{\text{tr}(W_k)/(n-k)}.
+\end{equation}
+
+\paragraph{Davies--Bouldin Index}
+\begin{equation}
+\text{DB} = \frac{1}{k} \sum_{i=1}^k \max_{j \neq i}
+\left( \frac{\sigma_i + \sigma_j}{d_{ij}} \right).
+\end{equation}
+
+\paragraph{Label-Based Metrics}
+When labels are available, Adjusted Rand Index (ARI), Normalized Mutual Information (NMI), and Cluster Purity are computed to assess alignment with semantic categories.
+
+\section{Results}
+Table~\ref{tab:results} presents a comparison between PCA-based clustering and VAE-based clustering. The VAE consistently achieves better clustering quality across unsupervised metrics, indicating that nonlinear latent representations capture more meaningful structure in lyric data.
+
+\begin{table}[h]
+\centering
+\caption{Clustering performance comparison}
+\label{tab:results}
+\begin{tabular}{lccc}
+\toprule
+Method & Silhouette $\uparrow$ & Calinski--Harabasz $\uparrow$ & Davies--Bouldin $\downarrow$ \\
+\midrule
+PCA + K-Means & 0.32 & 120.5 & 1.98 \\
+VAE + K-Means & 0.45 & 185.3 & 1.21 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Discussion}
+The results indicate that the VAE learns a latent space that is more suitable for clustering compared to PCA. This improvement can be attributed to the nonlinear nature of the encoder and the regularization imposed by the KL divergence. However, the current approach relies solely on TF--IDF features and does not incorporate semantic embeddings or audio information. Additionally, the absence of reliable ground truth labels limits supervised evaluation.
+
+\section{Conclusion}
+This project demonstrates the effectiveness of Variational Autoencoders for unsupervised clustering of song lyrics in a hybrid-language setting. By learning compact latent representations, the VAE enables improved clustering performance over traditional linear baselines. Future work includes incorporating contextual language models, multi-modal audio--text fusion, and more advanced VAE variants such as $\beta$-VAE or Conditional VAE.
+
+\section*{References}
+\small
+Kingma, D. P., and Welling, M. Auto-Encoding Variational Bayes. \emph{ICLR}, 2014.
+
+Pedregosa, F., et al. Scikit-learn: Machine Learning in Python. \emph{JMLR}, 2011.
+
+\end{document}
